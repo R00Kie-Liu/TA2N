@@ -1,6 +1,24 @@
 # TA2N: Two-Stage Action Alignment Network for Few-Shot Action Recognition
 
+## Updata
 The core code of TA2N has been released. More details will be published soon.
+
+
+## Motivaion
+<div align="center">
+<img src="imgs/intro.jpg" width="60%" height="60%"/><br/>
+</div>
+
+## Contribution
+- We delve specifically into the misalignment problem in few-shot action recognition, revealing and quantifying two critical aspects of this issue: the action duration and evolution misalignment.
+- We propose a novel two-stage action alignment network (TA2N), which performs a jointly spatial-temporal action alignment over videos, to address these two aspects of misalignment sequentially.
+- Extensive experiments show that our proposed method could relieve the misalignment and achieve state-of-theart results in few-shot video action recognition.
+
+## Overview
+
+<div align="center">
+<img src="imgs/framework.jpg" width="60%" height="60%"/><br/>
+</div>
 
 ## Usage in FSL model:
 First, obtain video feature embeddings through the Resnet-50 and transpose into (N, T, C, H, W) shape.
@@ -8,9 +26,8 @@ First, obtain video feature embeddings through the Resnet-50 and transpose into 
 ```python
 support = torch.rand(5, 2048, 8, 7, 7).cuda()
 query = torch.rand(5, 2048, 8, 7, 7).cuda()
-
 ```
-Then, feed the support and query feature into ta2n
+Then, feed the support and query feature into TA2N:
 ```python
 ta2n = TA2N(T=8,shot=1, dim=(2048,2048),first_stage=TTM, second_stage=ACM).cuda()
 pairs, offsets = ta2n(support, query)
@@ -20,4 +37,19 @@ You can split aligned query and support features from paired feature:
 
 ```
 aligned_support, aligned_query = pairs[:,:,:2048,...],pairs[:,:,2048:,...]
+```
+
+## Bibtex
+If you find our work helpful for your research, please consider citing the following BibTeX entry.
+
+```bibtex
+@inproceedings{li2022ta2n,
+  title={TA2N: Two-Stage Action Alignment Network for Few-Shot Action Recognition},
+  author={Li, Shuyuan and Liu, Huabin and Qian, Rui and Li, Yuxi and See, John and Fei, Mengjuan and Yu, Xiaoyuan and Lin, Weiyao},
+  booktitle={Proceedings of the AAAI Conference on Artificial Intelligence},
+  volume={36},
+  number={2},
+  pages={1404--1411},
+  year={2022}
+}
 ```
