@@ -23,7 +23,9 @@ Example of action misalignment. (a)&(b): action duration misalignment. The actio
 <img src="imgs/framework.png" width="80%" height="80%"/><br/>
 </div>
 
-## Usage in FSL model:
+
+
+## Usage
 First, obtain video feature embeddings through the Resnet-50 and transpose into (N, T, C, H, W) shape.
 
 ```python
