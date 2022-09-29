@@ -303,14 +303,12 @@ class TA2N(nn.Module):
         offsets=None
         if self.secondstage:
             ## Second Stage
-            if 'MVpred' in str(type(self.secondstage)):
-                pairs,offsets=self.secondstage(prototype,query_aligned,vis=vis)
-            else:
-                pairs=self.secondstage(prototype,query_aligned,vis=vis)
+            pairs,offsets=self.secondstage(prototype,query_aligned,vis=vis)
         else:
             pairs=torch.cat([prototype.unsqueeze(1).expand(n,m,-1,-1,-1,-1),query_aligned.unsqueeze(0).expand(n,m,-1,-1,-1,-1)],-4)#NM(C*2)THW
             rawsupport=None
         if not vis:
+            breakpoint()
             return pairs,offsets
         else:
             return pairs,offsets,vis_dict
