@@ -1,6 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from utils import *
 
 
 class TTM(nn.Module):
@@ -186,7 +187,7 @@ class ACM(nn.Module):
         #C,T,H,W=self.dim[0],self.T,7,7
         C, T, H, W = support_projed.shape[2:]
         B=n*m
-
+        # Forward to the Spatial Coordinate (SC) Module
         pairs=pairs.reshape(-1,C*2,T,H,W) # N*M=B, 2C, T, H, W
         offsets=self.mvnet(pairs).transpose(1,2)#B,2,T -> B,T,2
         offsets=offsets*0.75
@@ -221,3 +222,17 @@ class ACM(nn.Module):
     def decay(self):
         with torch.no_grad():
             self.perturb*=0.5
+
+
+if __name__ == '__main__':
+    stage1 = TTM(T=8,shot=1,dim=(2048,2048)).cuda()
+    stage2 = ACM(T=8, shot=1, dim=(2048,2048)).cuda()
+    support = torch.rand(5,2048,8,7,7).cuda() # N, C, T, H, W
+    query = torch.rand(5,2048,8,7,7).cuda()
+    support, query = stage1(support, query)
+    pairs, offset = stage2(support, query)
+    support, query = pairs[:,:,:2048,...],pairs[:,:,2048:,...]
+
+    ta2n = TA2N(T=8,shot=1, dim=(2048,2048),first_stage=TTM, second_stage=ACM).cuda()
+    pairs, offsets = ta2n(support, query) # pairs: (N, M, C+C, T, 1, 1) offsets: (N*M, T, 2)
+    support, query = pairs[:,:,:2048,...],pairs[:,:,2048:,...]
