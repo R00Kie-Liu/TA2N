@@ -224,7 +224,100 @@ class ACM(nn.Module):
             self.perturb*=0.5
 
 
+class TA2N(nn.Module):
+    def __init__(self,T,shot=1,dim=(64,64),first_stage=None,second_stage=True,fusion='insupport'):
+        super().__init__()
+        if first_stage:
+            self.firststage=TTM(T,shot,dim)
+        else:
+            self.firststage=None
+        if second_stage==True:
+            self.secondstage=ACM(T,shot,dim)
+        else:
+            self.secondstage=None
+        self.fusion=fusion
+        self.dim=dim
+        self.shot=shot
+
+        self.keynet_multi = nn.Conv1d(*dim,kernel_size=1,bias=False)
+        self.querynet_multi = nn.Conv1d(*dim,kernel_size=1,bias=False)
+        self.valuenet_multi = nn.Conv1d(dim[0],dim[0],kernel_size=1,bias=False)
+
+    def spatial_parameters(self):
+        yield from self.secondstage.mvnet.parameters()
+
+    def insupport_align(self,support_aligned):
+        with torch.no_grad():
+            k=self.shot
+            n,C,T,H,W=support_aligned.shape
+            n//=k
+        support_input=support_aligned.mean([-1,-2])#nk,C,T
+        reference=support_input.reshape(n,k,C,T)[:,0,:,:]# n,C,T
+        keys=self.keynet_multi(support_input).reshape(n,k,-1,T)#n,k,C,T
+        querys=self.querynet_multi(reference)#n,C,T
+        attention=torch.einsum('nkcx,ncy->nkxy',keys,querys)/(self.dim[1]**0.5) #n,kT,T
+        attention=attention.softmax(dim=2)
+        del keys,querys
+
+        values=self.valuenet_multi(support_aligned.reshape(n*k,C,T*H*W)).reshape(n,k,C,T,H,W)#n,k,C,T,H,W
+        support_recon=torch.einsum('nkxy,nkcxhw->nkcyhw',attention,values) #n,k,C,T
+        prototype=support_recon.mean(1)
+
+        return prototype
+
+    def forward(self,support,query,sum_mask=None,vis=False):
+        '''
+        inputs must have shape of N*C*T*H*W
+        return S*Q*T
+        '''
+        with torch.no_grad():
+            n,m=support.size(0)//self.shot,query.size(0)
+            k=self.shot
+            C,T,H,W=support.shape[1:]
+        #breakpoint()
+        if self.firststage:
+            if not vis:
+                support_aligned=self.firststage.align(support)
+                query_aligned=self.firststage.align(query)
+            else:
+                support_aligned,theta_support=self.firststage.align(support,vis=True)
+                query_aligned,theta_query=self.firststage.align(query,vis=True)
+                vis_dict={
+                    'first':{
+                        'theta_support':theta_support,
+                        'theta_query':theta_query,
+                    }
+                }
+        else:
+            support_aligned=support#.unsqueeze(1).expand(n,m,-1,-1,-1,-1)
+            query_aligned=query#.unsqueeze(0).expand(n,m,-1,-1,-1,-1)
+        # multi shot fusion
+        if self.shot>1:
+            prototype=self.insupport_align(support_aligned)
+            # m,C,T,H,W -> m,C,T*H*W
+            query_aligned = self.valuenet_multi(query_aligned.reshape(m,C,T*H*W)).reshape(m,C,T,H,W)
+        else:
+            prototype=support_aligned
+            query_aligned=query_aligned
+        # multi shot fusion end
+        offsets=None
+        if self.secondstage:
+            ## Second Stage
+            if 'MVpred' in str(type(self.secondstage)):
+                pairs,offsets=self.secondstage(prototype,query_aligned,vis=vis)
+            else:
+                pairs=self.secondstage(prototype,query_aligned,vis=vis)
+        else:
+            pairs=torch.cat([prototype.unsqueeze(1).expand(n,m,-1,-1,-1,-1),query_aligned.unsqueeze(0).expand(n,m,-1,-1,-1,-1)],-4)#NM(C*2)THW
+            rawsupport=None
+        if not vis:
+            return pairs,offsets
+        else:
+            return pairs,offsets,vis_dict
+
+
 if __name__ == '__main__':
+    # You can forward the 1st stage and 2nd stage in turn
     stage1 = TTM(T=8,shot=1,dim=(2048,2048)).cuda()
     stage2 = ACM(T=8, shot=1, dim=(2048,2048)).cuda()
     support = torch.rand(5,2048,8,7,7).cuda() # N, C, T, H, W
@@ -233,6 +326,8 @@ if __name__ == '__main__':
     pairs, offset = stage2(support, query)
     support, query = pairs[:,:,:2048,...],pairs[:,:,2048:,...]
 
+
+    # Or you can forward through the whole alignement model
     ta2n = TA2N(T=8,shot=1, dim=(2048,2048),first_stage=TTM, second_stage=ACM).cuda()
     pairs, offsets = ta2n(support, query) # pairs: (N, M, C+C, T, 1, 1) offsets: (N*M, T, 2)
     support, query = pairs[:,:,:2048,...],pairs[:,:,2048:,...]
