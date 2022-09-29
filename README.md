@@ -6,8 +6,11 @@ The core code of TA2N has been released. More details will be published soon.
 
 ## Motivaion
 <div align="center">
-<img src="imgs/intro.jpg" width="60%" height="60%"/><br/>
+<img src="imgs/intro.png" width="70%" height="70%"/><br/>
 </div>
+Example of action misalignment. (a)&(b): action duration misalignment. The action duration is highlighted with blue rectangles. (b)&(c): action evolution misalignment in temporal (left) and spatial (right) aspects. The red dashed connected lines indicate pairs of temporal or spatial positions are consistent in action content. The action category of these presented videos is ‘Hammer throw’.
+
+
 
 ## Contribution
 - We delve specifically into the misalignment problem in few-shot action recognition, revealing and quantifying two critical aspects of this issue: the action duration and evolution misalignment.
@@ -17,7 +20,7 @@ The core code of TA2N has been released. More details will be published soon.
 ## Overview
 
 <div align="center">
-<img src="imgs/framework.jpg" width="60%" height="60%"/><br/>
+<img src="imgs/framework.png" width="80%" height="80%"/><br/>
 </div>
 
 ## Usage in FSL model:
