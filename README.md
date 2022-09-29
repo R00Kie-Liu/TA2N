@@ -42,6 +42,12 @@ You can split aligned query and support features from paired feature:
 aligned_support, aligned_query = pairs[:,:,:2048,...],pairs[:,:,2048:,...]
 ```
 
+Distance can be then measured by a defined metric:
+
+```
+dist = timewise_cos(aligned_support, aligned_query)
+```
+
 ## Bibtex
 If you find our work helpful for your research, please consider citing the following BibTeX entry.
 
