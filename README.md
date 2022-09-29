@@ -1,7 +1,6 @@
 # TA2N: Two-Stage Action Alignment Network for Few-Shot Action Recognition
 
-The offical code will be published in a few days (before 2022/10/8).
-
+The core code of TA2N has been released. More details will be published soon.
 
 ## Usage in FSL model:
 First, obtain video feature embeddings through the Resnet-50 and transpose into (N, T, C, H, W) shape.
