@@ -27,7 +27,7 @@ def gen_mask(offsets,resolution):
     mask=mask.reshape(*shape,resolution,resolution)
     return mask
 
-class Squeeze(nn.Module):
+class Squeeze(torch.nn.Module):
     def __init__(self,*dim):
         super().__init__()
         if all(v>=0 for v in dim):
