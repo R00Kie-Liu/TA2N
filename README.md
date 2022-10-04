@@ -64,3 +64,7 @@ If you find our work helpful for your research, please consider citing the follo
   year={2022}
 }
 ```
+
+## Contact
+
+Feel free to contact huabinliu@sjtu.edu.cn if you have any questions.
