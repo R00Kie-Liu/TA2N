@@ -24,8 +24,15 @@ Example of action misalignment. (a)&(b): action duration misalignment. The actio
 </div>
 
 
+## Overall training & Eval
+1. Set the path of extracted video frames in args.scratch
+2. Set the split path in run_ta2n.py Line.148~Line.167 (all splits are provided in splits/ folder, you can set as this folder)
+3. Then, run on 2 GPU:
+```
+bash experiments/train_ucf_ta2n.sh
+```
 
-## Usage
+## Individual TA2N module Usage
 First, obtain video feature embeddings through the Resnet-50 and transpose into (N, T, C, H, W) shape.
 
 ```python
