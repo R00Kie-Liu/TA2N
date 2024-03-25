@@ -1,7 +1,7 @@
 # TA2N: Two-Stage Action Alignment Network for Few-Shot Action Recognition
 
 ## Updata
-The core code of TA2N has been released. More details will be published soon.
+The complete training code is released.
 
 
 ## Motivaion
